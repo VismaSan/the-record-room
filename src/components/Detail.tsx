@@ -37,7 +37,6 @@ export function Detail({ rec, admin, onClose, onToggleWish, onEdit }: DetailProp
             {rec.genre && <span className="stamp tag-quiet">{rec.genre}</span>}
             {rec.priority && <span className="stamp">Most wanted</span>}
           </div>
-          <p className="sheet-cat label">Catalog № W&amp;P-{String(rec.id).toUpperCase()}</p>
           {admin && (
             <div className="sheet-actions">
               <button className={'btn ' + (isWish ? 'btn-solid' : 'btn-accent')} onClick={() => onToggleWish(rec)}>

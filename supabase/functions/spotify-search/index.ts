@@ -13,6 +13,7 @@ interface SpotifyAlbum {
   artists: string
   imageUrl: string
   year: string
+  genre?: string
 }
 
 async function getAccessToken(): Promise<string> {
@@ -34,6 +35,23 @@ async function getAccessToken(): Promise<string> {
   return json.access_token as string
 }
 
+// Spotify album objects don't carry genre info directly - it lives on the artist.
+// Batch-fetch artists for the result set's primary artists and map genres back.
+async function fetchGenresByArtistId(artistIds: string[], token: string): Promise<Record<string, string>> {
+  if (artistIds.length === 0) return {}
+  const res = await fetch(`https://api.spotify.com/v1/artists?ids=${artistIds.join(',')}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) return {}
+  const json = await res.json()
+  const genreByArtist: Record<string, string> = {}
+  for (const artist of json.artists ?? []) {
+    const genre = artist?.genres?.[0]
+    if (artist?.id && genre) genreByArtist[artist.id] = genre.charAt(0).toUpperCase() + genre.slice(1)
+  }
+  return genreByArtist
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS_HEADERS })
@@ -41,26 +59,36 @@ Deno.serve(async (req) => {
 
   try {
     const { artist, title } = await req.json()
-    if (!artist || !title) {
-      return new Response(JSON.stringify({ error: 'artist and title are required' }), {
+    if (!artist) {
+      return new Response(JSON.stringify({ error: 'artist is required' }), {
         status: 400,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       })
     }
 
     const token = await getAccessToken()
-    const query = encodeURIComponent(`${artist} ${title}`)
-    const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=album&limit=6`, {
+    const queryParts = [`artist:"${artist}"`]
+    if (title) queryParts.push(`album:"${title}"`)
+    const searchUrl = new URL('https://api.spotify.com/v1/search')
+    searchUrl.searchParams.set('q', queryParts.join(' '))
+    searchUrl.searchParams.set('type', 'album')
+    searchUrl.searchParams.set('limit', '10')
+    const searchRes = await fetch(searchUrl, {
       headers: { Authorization: `Bearer ${token}` },
     })
     if (!searchRes.ok) throw new Error('Spotify search request failed')
     const searchJson = await searchRes.json()
+    const albumItems = searchJson.albums?.items ?? []
 
-    const albums: SpotifyAlbum[] = (searchJson.albums?.items ?? []).map((album: any) => ({
+    const artistIds = Array.from(new Set(albumItems.map((album: any) => album.artists?.[0]?.id).filter(Boolean))) as string[]
+    const genreByArtist = await fetchGenresByArtistId(artistIds, token)
+
+    const albums: SpotifyAlbum[] = albumItems.map((album: any) => ({
       name: album.name,
       artists: (album.artists ?? []).map((a: any) => a.name).join(', '),
       imageUrl: album.images?.[0]?.url ?? '',
       year: (album.release_date ?? '').slice(0, 4),
+      genre: genreByArtist[album.artists?.[0]?.id],
     }))
 
     return new Response(JSON.stringify(albums), {

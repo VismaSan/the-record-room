@@ -106,9 +106,10 @@ export function Editor({ rec, genres, onClose, onSave, onDelete }: EditorProps) 
           </div>
 
           <div className="fld">
-            <button className="btn btn-ghost" type="button" disabled={!form.artist.trim() || !form.title.trim() || searching} onClick={searchSpotify}>
+            <button className="btn btn-ghost" type="button" disabled={!form.artist.trim() || searching} onClick={searchSpotify}>
               {searching ? 'Searching…' : 'Search Spotify'}
             </button>
+            <span className="fld-help">Search by artist alone to browse their catalog, or add an album title to narrow it down.</span>
             {searchError && <span className="fld-help">{searchError}</span>}
             {results.length > 0 && (
               <div className="spotify-results">
@@ -117,7 +118,16 @@ export function Editor({ rec, genres, onClose, onSave, onDelete }: EditorProps) 
                     key={i}
                     type="button"
                     className={'spotify-result' + (form.img === album.imageUrl ? ' selected' : '')}
-                    onClick={() => set('img', album.imageUrl)}
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        artist: album.artists,
+                        title: album.name,
+                        year: album.year ? +album.year : f.year,
+                        genre: album.genre || f.genre,
+                        img: album.imageUrl,
+                      }))
+                    }
                   >
                     <img src={album.imageUrl} alt={`${album.artists} — ${album.name}`} />
                     <span>

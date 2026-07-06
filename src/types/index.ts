@@ -15,4 +15,5 @@ export interface SpotifyAlbum {
   artists: string
   imageUrl: string
   year: string
+  genre?: string
 }

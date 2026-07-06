@@ -108,7 +108,6 @@
 .sheet-artist { font-size: var(--t-lg); color: var(--rust); margin: 0; }
 .sheet-tags { display: flex; gap: var(--s-2); flex-wrap: wrap; margin-top: var(--s-4); }
 .sheet-actions { margin-top: var(--s-6); display: flex; gap: var(--s-3); align-items: center; flex-wrap: wrap; }
-.sheet-cat { margin-top: var(--s-5); }
 .tag-quiet { color: var(--ink); border-color: var(--line); background: transparent; }
 
 /* ---------- edit mode ---------- */
@@ -155,7 +154,10 @@
 .linkbtn:hover { color: var(--rust-deep); }
 
 /* ---------- spotify search (editor) ---------- */
-.spotify-results { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-2); margin-top: var(--s-2); }
+.spotify-results {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-2); margin-top: var(--s-2);
+  max-height: 340px; overflow-y: auto; padding-right: 4px;
+}
 .spotify-result { border: 1.5px solid var(--line); border-radius: var(--r-sm); overflow: hidden; cursor: pointer; background: none; padding: 0; transition: border-color var(--fast) var(--ease); }
 .spotify-result:hover, .spotify-result.selected { border-color: var(--rust); }
 .spotify-result img { width: 100%; aspect-ratio: 1 / 1; display: block; object-fit: cover; }
