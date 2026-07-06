@@ -18,8 +18,7 @@ create policy "Public read"
   using (true);
 
 -- Only the owner's Google account can write
--- Replace OWNER_EMAIL with your actual Google email address
 create policy "Owner write"
   on records for all
-  using  (auth.email() = 'OWNER_EMAIL')
-  with check (auth.email() = 'OWNER_EMAIL');
+  using  (auth.email() = 'vsanda.tech@gmail.com')
+  with check (auth.email() = 'vsanda.tech@gmail.com');
