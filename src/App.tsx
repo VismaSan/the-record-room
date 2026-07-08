@@ -74,6 +74,10 @@ function App() {
     else supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })
   }
   const previewAsGuest = () => setPreviewGuest(true)
+  const logOut = async () => {
+    await supabase.auth.signOut()
+    setPreviewGuest(false)
+  }
 
   const shelf = records.filter((r) => r.owned)
   const wish = records.filter((r) => !r.owned)
@@ -210,13 +214,24 @@ function App() {
       <footer className="site-foot">
         <span className="mono">Wax &amp; Paper</span>
         <div className="foot-actions">
-          {isAdmin ? (
+          {isAdmin && (
             <button className="linkbtn label" onClick={previewAsGuest}>
               Preview as guest
             </button>
-          ) : (
+          )}
+          {!authedAsOwner && (
             <button className="linkbtn label" onClick={enableEditing}>
               Owner? Enable editing
+            </button>
+          )}
+          {previewGuest && authedAsOwner && (
+            <button className="linkbtn label" onClick={enableEditing}>
+              Back to editing
+            </button>
+          )}
+          {authedAsOwner && (
+            <button className="linkbtn label" onClick={logOut}>
+              Log out
             </button>
           )}
         </div>
