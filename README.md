@@ -1,32 +1,42 @@
-# React + TypeScript + Vite
+# The Record Room
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A personal vinyl collection and wishlist site. Browse the shelf, see what's on the
+wishlist, and (as the owner) add, edit, and search Spotify for cover art — all
+backed by Supabase.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Vite + React + TypeScript
+- Supabase (Postgres, Auth via Google OAuth, Edge Functions)
+- Spotify Web API (Client Credentials) for cover art search, via a Supabase Edge Function
 
-## React Compiler
+## Local development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Copy `.env.example` to `.env` and fill in your Supabase project URL, anon key, and
+owner email (the Google account allowed to edit records).
+
+## Database setup
+
+Run `supabase/schema.sql` in your Supabase project's SQL editor. It creates the
+`records` table with row-level security: anyone can read, only the owner's Google
+account (set in the policy) can write.
+
+## Spotify cover search
+
+The `spotify-search` Edge Function (`supabase/functions/spotify-search`) requires
+two secrets set in the Supabase dashboard under Edge Functions → Secrets:
+
+```
+SPOTIFY_CLIENT_ID=...
+SPOTIFY_CLIENT_SECRET=...
+```
+
+## Deployment
+
+Deploys to Vercel; `vercel.json` handles the SPA rewrite. Set the same three env
+vars from `.env.example` in the Vercel project settings.
